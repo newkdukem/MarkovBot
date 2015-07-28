@@ -102,7 +102,7 @@ while True:
         if(line[0]=="PING"):
             s.send("PONG %s\r\n" % line[1])
 
-        if(line[1] == "PRIVMSG") and (line[2] == "Markobototo"):
+        if(line[1] == "PRIVMSG") and (line[2] == NICK):
             sender = re.search(':(.*)!', line[0])
             sender = sender.group(1)
             line[3] = string.strip(line[3], ":")
