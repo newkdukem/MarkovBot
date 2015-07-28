@@ -2,17 +2,17 @@ import re
 from collections import Counter
 import random
 
-
+# IRC related imports
 import sys
 import socket
 import string
 
 
 # A dictionary of words with the pobability of a word that follows
-Rechnik = {} 
+Nextword_count = {} 
 
 # A counter of words
-Brojach = Counter()
+Word_count = Counter()
 
 # Feeding text variable
 txtfile = re.findall(r'\w+', open('shakespeare.txt').read().lower())
@@ -41,37 +41,38 @@ def what_i_hear(sentence, list_of_words):
     return str(weighted_random(rare))
 
 # Filling the dictionary of words
-for segashen, sleden in give_me_pairs(txtfile):
-    if not segashen in Rechnik: 
-        Rechnik[segashen] = Counter()
+for current_word, next_word in give_me_pairs(txtfile):
+    if not current_word in Nextword_count: 
+        Nextword_count[current_word] = Counter()
 
-    cnt = Rechnik[segashen]
-    cnt[sleden] += 1
+    cnt = Nextword_count[current_word]
+    cnt[next_word] += 1
 
 # Filling the counter of words
 for word in txtfile:
-    Brojach[word] += 1
+    Word_count[word] += 1
 
 # Making a counter from the raw input
 def the_brain(in_words):
     the_sentence = Counter(re.findall(r'\w+', str(in_words).lower()))
 
     wordot = ""
-    wordot = what_i_hear(the_sentence, Brojach)
+    wordot = what_i_hear(the_sentence, Word_count)
     i = 0
     rechenica = []
     if not wordot:
-        wordot = random.choice(Rechnik.keys())
+        wordot = random.choice(Nextword_count.keys())
 
     rechenica = [str(wordot).title()]
     while i < 15:
-        wordot = weighted_random(Rechnik[wordot])
+        wordot = weighted_random(Nextword_count[wordot])
         rechenica.append(wordot)
         i += 1
     return str(' '.join(rechenica) + ".")
 
-# # The irc part
+# # The irc part taken from http://archive.oreilly.com/pub/h/1968
 
+# IRC configuration
 HOST="irc.freenode.net"
 PORT=6667
 NICK="Markobototo"
@@ -80,17 +81,19 @@ REALNAME="markobot"
 readbuffer=""
 CHANNEL="#lugola"
 
+# Connecting to IRC using socket
 s=socket.socket( )
 s.connect((HOST, PORT))
 s.send("NICK %s\r\n" % NICK)
 s.send("USER %s %s bla :%s\r\n" % (IDENT, HOST, REALNAME))
 s.send("JOIN %s\r\n" % CHANNEL)
 
-while True:
-    readbuffer=readbuffer+s.recv(1024)
-    temp=string.split(readbuffer, "\n")
-    readbuffer=temp.pop( )
 
+# Put everything you receive in a readbuffer
+while True:
+    readbuffer=readbuffer+s.recv(4096)
+    temp=string.split(readbuffer, "\n")
+    readbuffer=temp.pop()
 
     for line in temp:
         line=string.rstrip(line)
@@ -99,21 +102,13 @@ while True:
         if(line[0]=="PING"):
             s.send("PONG %s\r\n" % line[1])
 
-        if(line[1] == "PRIVMSG"):
-            sender = ""
-            for char in line[0]:
-                if(char == "!"):
-                    break
-                if(char != ":"):
-                    sender += char 
+        if(line[1] == "PRIVMSG") and (line[2] == "Markobototo"):
+            sender = re.search(':(.*)!', line[0])
+            sender = sender.group(1)
+            line[3] = string.strip(line[3], ":")
 
-            for char in line[3]:
-                if char == ":":
-                    line[3] = ""
-                else:
-                    line[3] += char
-                
+            print sender + ": " + str(' '.join(line[3:]))
+            
             message = the_brain(str(' '.join(line[3:])))
-            message.lstrip(":")
-            print message
+            print "Bot: " + message
             s.send("PRIVMSG %s :%s \r\n" % (sender, message))
