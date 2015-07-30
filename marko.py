@@ -9,14 +9,14 @@ import socket
 import string
 
 
-# # A dictionary of words with the pobability of a word that follows
-# Nextword_count = {} 
+# A dictionary of words with the pobability of a word that follows
+Nextword_count = {} 
 
 # Having a dict with pair of words as key
 Word_pairs = {}
 
-# # A counter of words
-# Word_count = Counter()
+# A counter of words
+Word_count = Counter()
 
 # A counter of pair of consecutive words
 Pair_count = Counter()
@@ -62,7 +62,7 @@ def weighted_random_2nd(counte):
 #         return ""
 #     rare = Counter({ key: value for key,value in list_of_words.items() if key in valid_words})
 #     rare = Counter(dict(rare.most_common()[:-3-1:-1]))
-    # return str(weighted_random(rare))
+#     return str(weighted_random(rare))
 
 # Taking probably the most rare pair of words from the sentence
 def what_i_hear_2nd(sentence, list_of_pairs):
@@ -73,13 +73,13 @@ def what_i_hear_2nd(sentence, list_of_pairs):
     rare = Counter(dict(rare.most_common()[:-3-1:-1]))
     return weighted_random(rare)
 
-# # Filling the dictionary of words
-# for current_word, next_word in give_me_pairs(txtfile):
-#     if not current_word in Nextword_count: 
-#         Nextword_count[current_word] = Counter()
+# Filling the dictionary of words
+for current_word, next_word in give_me_pairs(txtfile):
+    if not current_word in Nextword_count: 
+        Nextword_count[current_word] = Counter()
 
-#     cnt = Nextword_count[current_word]
-#     cnt[next_word] += 1
+    cnt = Nextword_count[current_word]
+    cnt[next_word] += 1
 
 # Filling the dict with pair of words as key
 for prev_word, current_word, next_word in give_me_triplets(txtfile):
@@ -89,9 +89,9 @@ for prev_word, current_word, next_word in give_me_triplets(txtfile):
     cnt = Word_pairs[word_tuple]
     cnt[next_word] += 1
 
-# # Filling the counter of words
-# for word in txtfile:
-#     Word_count[word] += 1
+# Filling the counter of words
+for word in txtfile:
+    Word_count[word] += 1
 
 # Filling the counter of pair of words
 for word, next in give_me_pairs(txtfile):
@@ -120,12 +120,15 @@ for word, next in give_me_pairs(txtfile):
 def the_brain_2nd(in_words):
     the_sentence = re.findall(r'\w+', str(in_words).lower())
     the_sentence = Counter(give_me_pairs(the_sentence))
-    wordot = ""
     wordot = what_i_hear_2nd(the_sentence, Pair_count)
     i = 0
     rechenica = []
     if not wordot:
-        wordot = random.choice(Pair_count.keys())
+        the_sentence = Counter(re.findall(r'\w+', str(in_words).lower()))
+        wordot = what_i_hear_2nd(the_sentence, Word_count)
+        if not wordot: 
+            wordot = random.choice(Pair_count.keys())
+        wordot = wordot, weighted_random(Nextword_count[wordot])
     rechenica.append(' '.join(wordot))
     while i < 15:
         # print Word_pairs.keys()
