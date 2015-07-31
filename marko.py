@@ -1,3 +1,8 @@
+# # TODO
+# Making it learn from the input
+# Checking if the given sentence is a question
+# Testing if he can learn when cyrilic nput is given
+
 import re
 from collections import Counter
 import random
