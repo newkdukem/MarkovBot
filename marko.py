@@ -22,9 +22,10 @@ Word_count = Counter()
 Pair_count = Counter()
 
 # Feeding text variable
-txtfile = re.findall(r'\w+', open('shakespeare.txt').read().lower())
+txtfile = re.findall(r"[\w']+|[.,!?;]", open('shakespeare.txt').read().lower())
 
-
+def parsing_the_string(string):
+    string.split(" ")
 
 # A function taking a list of words and returning a pair of consecutive words in a text
 def give_me_pairs(words):
@@ -130,13 +131,25 @@ def the_brain_2nd(in_words):
             wordot = random.choice(Pair_count.keys())
         wordot = wordot, weighted_random(Nextword_count[wordot])
     rechenica.append(' '.join(wordot))
-    while i < 15:
+    while True:
         # print Word_pairs.keys()
         smesten = weighted_random(Word_pairs[wordot])
         rechenica.append(str(smesten))
         wordot = wordot[1], smesten
-        i += 1
-    return str(' '.join(rechenica) + ".")
+        if smesten == "." or smesten == "?":
+            break
+    nesredena = str(' '.join(rechenica))
+    sredena = ""
+    for (prev, current) in zip(nesredena[0::1], nesredena[1::1]):
+        if current == "." or current == "," or current == "!" or current == ";" or current == "?":
+            sredena += ""
+        else:
+            sredena += prev
+    sredena = list(sredena)
+    sredena[0] = sredena[0].capitalize()
+    sredena = "".join(sredena)
+    return sredena + "."
+
 
 # print the_brain_2nd(raw_input("say: "))
 
@@ -182,5 +195,5 @@ while True:
             print sender + ": " + str(' '.join(line[3:]))
             
             message = the_brain_2nd(str(' '.join(line[3:])))
-            print "Bot: " + message
+            print "Bot: " + str(message)
             s.send("PRIVMSG %s :%s \r\n" % (sender, message))
