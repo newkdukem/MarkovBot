@@ -126,10 +126,10 @@ def the_brain_2nd(in_words):
     rechenica = []
     if not wordot:
         the_sentence = Counter(re.findall(r'\w+', str(in_words).lower()))
-        wordot = what_i_hear_2nd(the_sentence, Word_count)
+        wordot = what_i_hear_2nd(the_sentence, Pair_count)
         if not wordot: 
             wordot = random.choice(Pair_count.keys())
-        wordot = wordot, weighted_random(Nextword_count[wordot])
+            # wordot = wordot, weighted_random(Nextword_count[wordot])
     rechenica.append(' '.join(wordot))
     while True:
         # print Word_pairs.keys()
