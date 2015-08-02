@@ -8,6 +8,9 @@ from collections import Counter
 import random
 import itertools
 
+import json
+import cPickle as pickle
+
 # IRC related imports
 import sys
 import socket
@@ -28,9 +31,6 @@ Pair_count = Counter()
 
 # Feeding text variable
 txtfile = re.findall(r"[\w']+|[.,!?;]", open('shakespeare.txt').read().lower())
-
-def parsing_the_string(string):
-    string.split(" ")
 
 # A function taking a list of words and returning a pair of consecutive words in a text
 def give_me_pairs(words):
@@ -80,29 +80,36 @@ def what_i_hear_2nd(sentence, list_of_pairs):
     return weighted_random(rare)
 
 # Filling the dictionary of words
-for current_word, next_word in give_me_pairs(txtfile):
-    if not current_word in Nextword_count: 
-        Nextword_count[current_word] = Counter()
-
-    cnt = Nextword_count[current_word]
-    cnt[next_word] += 1
+def fill_Nextword_count(txtfile):
+    for current_word, next_word in give_me_pairs(txtfile):
+        if not current_word in Nextword_count: 
+            Nextword_count[current_word] = Counter()
+        cnt = Nextword_count[current_word]
+        cnt[next_word] += 1
+    return Nextword_count
 
 # Filling the dict with pair of words as key
-for prev_word, current_word, next_word in give_me_triplets(txtfile):
-    word_tuple = prev_word, current_word
-    if not (prev_word, current_word) in Word_pairs: 
-        Word_pairs[word_tuple] = Counter()
-    cnt = Word_pairs[word_tuple]
-    cnt[next_word] += 1
+def fill_Word_pairs(txtfile):
+    for prev_word, current_word, next_word in give_me_triplets(txtfile):
+        word_tuple = prev_word, current_word
+        if not (prev_word, current_word) in Word_pairs: 
+            Word_pairs[word_tuple] = Counter()
+        cnt = Word_pairs[word_tuple]
+        cnt[next_word] += 1
+    return Word_pairs
 
 # Filling the counter of words
-for word in txtfile:
-    Word_count[word] += 1
+def fill_Word_count(txtfile):
+    for word in txtfile:
+        Word_count[word] += 1
+    return Word_count
 
 # Filling the counter of pair of words
-for word, next in give_me_pairs(txtfile):
-    word_tuple = word, next
-    Pair_count[word_tuple] += 1
+def fill_Pair_count(txtfile):    
+    for word, next in give_me_pairs(txtfile):
+        word_tuple = word, next
+        Pair_count[word_tuple] += 1
+    return Pair_count
 
 # # Making a counter from the raw input
 # def the_brain(in_words):
@@ -122,8 +129,72 @@ for word, next in give_me_pairs(txtfile):
 #         i += 1
 #     return str(' '.join(rechenica) + ".")
 
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # First run. Filling the pickle objects with counters and dictionaries
+Nextword_count = fill_Nextword_count(txtfile)
+Word_pairs = fill_Word_pairs(txtfile)
+Word_count = fill_Word_count(txtfile)
+Pair_count = fill_Pair_count(txtfile)
+
+# JSON needs to bi fixed
+# with open('Nextword_count.json', 'w') as fp:
+#     json.dump(Nextword_count, fp)
+# with open('Word_count.json', 'w') as fp:
+#     json.dump(Word_count, fp)
+# with open('Pair_count.json', 'w') as fp:
+#     json.dump(Pair_count, fp)
+# with open('Word_pairs.json', 'w') as fp:
+#     json.dump(Word_pairs, fp)
+
+
+# # Filling the dbs
+# with open('Nextword_count.p', 'wb') as fp:
+#     pickle.dump(Nextword_count, fp)
+# with open('Word_count.p', 'wb') as fp:
+#     pickle.dump(Word_count, fp)
+# with open('Pair_count.p', 'wb') as fp:
+#     pickle.dump(Pair_count, fp)
+# with open('Word_pairs.p', 'wb') as fp:
+#     pickle.dump(Word_pairs, fp)
+# exit()
+
+with open('Nextword_count.p', 'rb') as fp:
+    Nextword_count = pickle.load(fp)
+with open('Word_count.p', 'rb') as fp:
+    Word_count = pickle.load(fp)
+with open('Pair_count.p', 'rb') as fp:
+    Pair_count = pickle.load(fp)
+with open('Word_pairs.p', 'rb') as fp:
+    Word_pairs = pickle.load(fp)
+
+
+def learn_new_things(message):
+    Nextword_count = fill_Nextword_count(message)
+    Word_pairs = fill_Word_pairs(message)
+    Word_count = fill_Word_count(message)
+    Pair_count = fill_Pair_count(message)
+    with open('Nextword_count.p', 'wb') as fp:
+        pickle.dump(Nextword_count, fp)
+    with open('Word_count.p', 'wb') as fp:
+        pickle.dump(Word_count, fp)
+    with open('Pair_count.p', 'wb') as fp:
+        pickle.dump(Pair_count, fp)
+    with open('Word_pairs.p', 'wb') as fp:
+        pickle.dump(Word_pairs, fp)
+    print "Learned: " + str(message)
+    with open('Nextword_count.p', 'rb') as fp:
+        Nextword_count = pickle.load(fp)
+    with open('Word_count.p', 'rb') as fp:
+        Word_count = pickle.load(fp)
+    with open('Pair_count.p', 'rb') as fp:
+        Pair_count = pickle.load(fp)
+    with open('Word_pairs.p', 'rb') as fp:
+        Word_pairs = pickle.load(fp)     
+
 # Making the 2nd Brane
 def the_brain_2nd(in_words):
+
     the_sentence = re.findall(r'\w+', str(in_words).lower())
     the_sentence = Counter(give_me_pairs(the_sentence))
     wordot = what_i_hear_2nd(the_sentence, Pair_count)
@@ -200,5 +271,10 @@ while True:
             print sender + ": " + str(' '.join(line[3:]))
             
             message = the_brain_2nd(str(' '.join(line[3:])))
+            to_learn = re.findall(r"[\w']+|[.,!?;]", str(' '.join(line[3:])).lower())
+            learn_new_things(to_learn)
+
+            print Word_count['dali']
+
             print "Bot: " + str(message)
             s.send("PRIVMSG %s :%s \r\n" % (sender, message))
